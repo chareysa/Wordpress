@@ -16,9 +16,9 @@ function ZoomOutModeInserters() {
 	const [ isReady, setIsReady ] = useState( false );
 	const {
 		hasSelection,
-		inserterInsertionPoint,
+		insertionPoint,
 		blockOrder,
-		blockInsertionPointVisible,
+		insertionCueIsVisible,
 		setInserterIsOpened,
 		sectionRootClientId,
 		selectedBlockClientId,
@@ -26,22 +26,22 @@ function ZoomOutModeInserters() {
 	} = useSelect( ( select ) => {
 		const {
 			getSettings,
-			getInserterInsertionPoint,
+			getInsertionPoint,
 			getBlockOrder,
 			getSelectionStart,
 			getSelectedBlockClientId,
 			getHoveredBlockClientId,
 			getSectionRootClientId,
-			isBlockInsertionPointVisible,
+			isInsertionCueVisible,
 		} = unlock( select( blockEditorStore ) );
 
 		const root = getSectionRootClientId();
 
 		return {
 			hasSelection: !! getSelectionStart().clientId,
-			inserterInsertionPoint: getInserterInsertionPoint(),
+			insertionPoint: getInsertionPoint(),
 			blockOrder: getBlockOrder( root ),
-			blockInsertionPointVisible: isBlockInsertionPointVisible(),
+			insertionCueIsVisible: isInsertionCueVisible(),
 			sectionRootClientId: root,
 			setInserterIsOpened:
 				getSettings().__experimentalSetIsInserterOpened,
@@ -51,7 +51,7 @@ function ZoomOutModeInserters() {
 	}, [] );
 
 	// eslint-disable-next-line @wordpress/no-unused-vars-before-return
-	const { showInsertionPoint, setInserterInsertionPoint } = unlock(
+	const { showInsertionCue, setInsertionPoint } = unlock(
 		useDispatch( blockEditorStore )
 	);
 
@@ -71,8 +71,7 @@ function ZoomOutModeInserters() {
 
 	return [ undefined, ...blockOrder ].map( ( clientId, index ) => {
 		const shouldRenderInsertionPoint =
-			blockInsertionPointVisible &&
-			inserterInsertionPoint?.insertionIndex === index;
+			insertionCueIsVisible && insertionPoint?.index === index;
 
 		const previousClientId = clientId;
 		const nextClientId = blockOrder[ index ];
@@ -100,11 +99,11 @@ function ZoomOutModeInserters() {
 								tab: 'patterns',
 								category: 'all',
 							} );
-							setInserterInsertionPoint( {
+							setInsertionPoint( {
 								rootClientId: sectionRootClientId,
-								insertionIndex: index,
+								index,
 							} );
-							showInsertionPoint( sectionRootClientId, index, {
+							showInsertionCue( sectionRootClientId, index, {
 								operation: 'insert',
 							} );
 						} }

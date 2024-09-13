@@ -29,16 +29,16 @@ export function ZoomOutSeparator( {
 	const {
 		sectionRootClientId,
 		sectionClientIds,
-		inserterInsertionPoint,
-		blockInsertionPointVisible,
-		blockInsertionPoint,
+		insertionPoint,
+		insertionCueIsVisible,
+		insertionCue,
 	} = useSelect( ( select ) => {
 		const {
-			getInserterInsertionPoint,
+			getInsertionPoint,
 			getBlockOrder,
 			getSectionRootClientId,
-			isBlockInsertionPointVisible,
-			getBlockInsertionPoint,
+			isInsertionCueVisible,
+			getInsertionCue,
 		} = unlock( select( blockEditorStore ) );
 
 		const root = getSectionRootClientId();
@@ -47,9 +47,9 @@ export function ZoomOutSeparator( {
 			sectionRootClientId: root,
 			sectionClientIds: sectionRootClientIds,
 			blockOrder: getBlockOrder( root ),
-			inserterInsertionPoint: getInserterInsertionPoint(),
-			blockInsertionPoint: getBlockInsertionPoint(),
-			blockInsertionPointVisible: isBlockInsertionPointVisible(),
+			insertionPoint: getInsertionPoint(),
+			insertionCueIsVisible: isInsertionCueVisible(),
+			insertionCue: getInsertionCue(),
 		};
 	}, [] );
 
@@ -70,31 +70,28 @@ export function ZoomOutSeparator( {
 		return null;
 	}
 
-	const hasTopInserterInsertionPoint =
-		inserterInsertionPoint?.insertionIndex === 0 &&
-		clientId === sectionClientIds[ inserterInsertionPoint.insertionIndex ];
-	const hasBottomInserterInsertionPoint =
-		inserterInsertionPoint &&
-		inserterInsertionPoint.hasOwnProperty( 'insertionIndex' ) &&
-		clientId ===
-			sectionClientIds[ inserterInsertionPoint.insertionIndex - 1 ];
+	const hasTopinsertionPoint =
+		insertionPoint?.index === 0 &&
+		clientId === sectionClientIds[ insertionPoint.index ];
+	const hasBottomInsertionPoint =
+		insertionPoint &&
+		clientId === sectionClientIds[ insertionPoint.index - 1 ];
 	// We want to show the zoom out separator in either of these conditions:
 	// 1. If the inserter has an insertion index set
 	// 2. We are dragging a pattern over an insertion point
 	if ( position === 'top' ) {
 		isVisible =
-			hasTopInserterInsertionPoint ||
-			( blockInsertionPointVisible &&
-				blockInsertionPoint.index === 0 &&
-				clientId === sectionClientIds[ blockInsertionPoint.index ] );
+			hasTopinsertionPoint ||
+			( insertionCueIsVisible &&
+				insertionCue.index === 0 &&
+				clientId === sectionClientIds[ insertionCue.index ] );
 	}
 
 	if ( position === 'bottom' ) {
 		isVisible =
-			hasBottomInserterInsertionPoint ||
-			( blockInsertionPointVisible &&
-				clientId ===
-					sectionClientIds[ blockInsertionPoint.index - 1 ] );
+			hasBottomInsertionPoint ||
+			( insertionCueIsVisible &&
+				clientId === sectionClientIds[ insertionCue.index - 1 ] );
 	}
 
 	return (

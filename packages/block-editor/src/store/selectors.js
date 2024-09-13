@@ -1459,14 +1459,24 @@ export function isCaretWithinFormattedText() {
  */
 export const getBlockInsertionPoint = createSelector(
 	( state ) => {
+		deprecated(
+			'wp.data.select( "core/block-editor" ).getBlockInsertionPoint',
+			{
+				since: '6.7',
+				version: '6.9',
+				alternative:
+					'If you need to know where insertion point is, use `wp.data.select( "core/block-editor" ).getInsertionPoint`. If you need to know where insertion cue is, use `wp.data.select( "core/block-editor" ).getInsertionCue`.',
+			}
+		);
+
 		let rootClientId, index;
 
 		const {
-			insertionPoint,
+			insertionCue,
 			selection: { selectionEnd },
 		} = state;
-		if ( insertionPoint !== null ) {
-			return insertionPoint;
+		if ( insertionCue !== null ) {
+			return insertionCue;
 		}
 
 		const { clientId } = selectionEnd;
@@ -1481,12 +1491,73 @@ export const getBlockInsertionPoint = createSelector(
 		return { rootClientId, index };
 	},
 	( state ) => [
-		state.insertionPoint,
+		state.insertionCue,
 		state.selection.selectionEnd.clientId,
 		state.blocks.parents,
 		state.blocks.order,
 	]
 );
+
+/**
+ * Returns the insertion cue state. Returns null if there is no insertion cue.
+ *
+ * @param {Object} state Editor state.
+ *
+ * @return {Object} Insertion point object with `rootClientId`, `index`.
+ */
+export function getInsertionCue( state ) {
+	return state.insertionCue;
+}
+
+/**
+ * Returns the point where a block would be inserted.
+ *
+ * @param {Object} state Editor state.
+ *
+ * @return {Object} Insertion point object with `rootClientId`, `index`.
+ */
+export const getNextInsertionPoint = createRegistrySelector( ( select ) =>
+	createSelector(
+		( state ) => {
+			let rootClientId, index;
+
+			const {
+				insertionPoint,
+				selection: { selectionEnd },
+			} = state;
+			if ( insertionPoint !== null ) {
+				return insertionPoint;
+			}
+
+			const { clientId } = selectionEnd;
+			const sectionRootClientId = unlock(
+				select( STORE_NAME )
+			).getSectionRootClientId( state, clientId );
+
+			if ( clientId ) {
+				rootClientId =
+					getBlockRootClientId( state, clientId ) || undefined;
+				index = getBlockIndex( state, selectionEnd.clientId ) + 1;
+			} else if ( sectionRootClientId ) {
+				index = getBlockOrder( state, sectionRootClientId ).length;
+			} else {
+				index = getBlockOrder( state ).length;
+			}
+
+			return { rootClientId, index };
+		},
+		( state ) => [
+			state.insertionPoint,
+			state.selection.selectionEnd.clientId,
+			state.blocks.parents,
+			state.blocks.order,
+		]
+	)
+);
+
+export function getInsertionPoint( state ) {
+	return state.insertionPoint;
+}
 
 /**
  * Returns true if we should show the block insertion point.
@@ -1496,7 +1567,27 @@ export const getBlockInsertionPoint = createSelector(
  * @return {?boolean} Whether the insertion point is visible or not.
  */
 export function isBlockInsertionPointVisible( state ) {
-	return state.insertionPoint !== null;
+	deprecated(
+		'wp.data.select( "core/block-editor" ).isBlockInsertionPointVisible',
+		{
+			since: '6.7',
+			version: '6.9',
+			alternative:
+				'wp.data.select( "core/block-editor" ).showInsertionCue',
+		}
+	);
+	return isInsertionCueVisible( state );
+}
+
+/**
+ * Returns true if we should show the insertion cue.
+ *
+ * @param {Object} state Global application state.
+ *
+ * @return {?boolean} Whether the insertion cue is visible or not.
+ */
+export function isInsertionCueVisible( state ) {
+	return state.insertionCue !== null;
 }
 
 /**
