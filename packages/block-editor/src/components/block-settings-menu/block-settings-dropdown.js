@@ -19,6 +19,7 @@ import { pipe, useCopyToClipboard } from '@wordpress/compose';
  * Internal dependencies
  */
 import BlockActions from '../block-actions';
+import __unstableCommentIconFill from '../collab/block-comment-icon-slot';
 import BlockHTMLConvertButton from './block-html-convert-button';
 import __unstableBlockSettingsMenuFirstItem from './block-settings-menu-first-item';
 import BlockSettingsMenuControls from '../block-settings-menu-controls';
@@ -278,6 +279,11 @@ export function BlockSettingsDropdown( {
 										</MenuItem>
 									</>
 								) }
+
+								<__unstableCommentIconFill.Slot
+									fillProps={ { onClose } }
+								/>
+
 							</MenuGroup>
 							{ canCopyStyles && ! isContentOnly && (
 								<MenuGroup>
