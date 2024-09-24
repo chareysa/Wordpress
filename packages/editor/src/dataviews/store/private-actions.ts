@@ -13,6 +13,7 @@ import resetPost from '../actions/reset-post';
 import trashPost from '../actions/trash-post';
 import renamePost from '../actions/rename-post';
 import restorePost from '../actions/restore-post';
+import setAsHomepage from '../actions/set-as-homepage';
 import type { PostType } from '../types';
 import { store as editorStore } from '../../store';
 import { unlock } from '../../lock-unlock';
@@ -87,6 +88,14 @@ export const registerPostTypeActions =
 				kind: 'postType',
 				name: postType,
 			} );
+
+		const canManageOptions = await registry
+			.resolveSelect( coreStore )
+			.canUser( 'update', {
+				kind: 'root',
+				name: 'site',
+			} );
+
 		const currentTheme = await registry
 			.resolveSelect( coreStore )
 			.getCurrentTheme();
@@ -117,6 +126,9 @@ export const registerPostTypeActions =
 				? reorderPage
 				: undefined,
 			postTypeConfig.slug === 'wp_block' ? exportPattern : undefined,
+			canManageOptions && postTypeConfig.slug === 'page'
+				? setAsHomepage
+				: undefined,
 			resetPost,
 			restorePost,
 			deletePost,
