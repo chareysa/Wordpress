@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+### Bug Fixes
+
+-   `ToggleGroupControl`: indicator doesn't jump around when the layout around it changes ([#65175](https://github.com/WordPress/gutenberg/pull/65175)).
+
+### Enhancements
+
+-   `ToggleGroupControl`: indicator animation is now more lightweight and performant ([#65175](https://github.com/WordPress/gutenberg/pull/65175)).
+
 ## 28.8.0 (2024-09-19)
 
 ### Bug Fixes

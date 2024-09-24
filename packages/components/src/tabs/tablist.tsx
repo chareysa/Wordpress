@@ -34,10 +34,12 @@ export const TabList = forwardRef<
 	);
 
 	const [ animationEnabled, setAnimationEnabled ] = useState( false );
-	useOnValueUpdate(
-		selectedId,
-		( { previousValue } ) => previousValue && setAnimationEnabled( true )
-	);
+	useOnValueUpdate( indicatorPosition.element, ( { previousValue } ) => {
+		// Only enable the animation when moving from one element to another.
+		if ( indicatorPosition.element && previousValue ) {
+			setAnimationEnabled( true );
+		}
+	} );
 
 	if ( ! context || ! tabStoreState ) {
 		warning( '`Tabs.TabList` must be wrapped in a `Tabs` component.' );
@@ -86,7 +88,7 @@ export const TabList = forwardRef<
 				...otherProps.style,
 			} }
 			className={ clsx(
-				animationEnabled ? 'is-animation-enabled' : '',
+				animationEnabled && 'is-animation-enabled',
 				otherProps.className
 			) }
 		>

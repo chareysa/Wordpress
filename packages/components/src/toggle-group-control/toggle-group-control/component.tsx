@@ -2,13 +2,12 @@
  * External dependencies
  */
 import type { ForwardedRef } from 'react';
-import { LayoutGroup } from 'framer-motion';
+import clsx from 'clsx';
 
 /**
  * WordPress dependencies
  */
-import { useInstanceId } from '@wordpress/compose';
-import { useMemo } from '@wordpress/element';
+import { useMemo, useState } from '@wordpress/element';
 
 /**
  * Internal dependencies
@@ -22,6 +21,8 @@ import { VisualLabelWrapper } from './styles';
 import * as styles from './styles';
 import { ToggleGroupControlAsRadioGroup } from './as-radio-group';
 import { ToggleGroupControlAsButtonGroup } from './as-button-group';
+import { useTrackElementOffsetRect } from '../../utils/element-rect';
+import { useOnValueUpdate } from '../../utils/hooks/use-on-value-update';
 
 function UnconnectedToggleGroupControl(
 	props: WordPressComponentProps< ToggleGroupControlProps, 'div', false >,
@@ -44,9 +45,21 @@ function UnconnectedToggleGroupControl(
 		...otherProps
 	} = useContextSystem( props, 'ToggleGroupControl' );
 
-	const baseId = useInstanceId( ToggleGroupControl, 'toggle-group-control' );
 	const normalizedSize =
 		__next40pxDefaultSize && size === 'default' ? '__unstable-large' : size;
+
+	const [ activeElement, setActiveElement ] = useState< HTMLElement >();
+	const indicatorPosition = useTrackElementOffsetRect(
+		value ? activeElement : undefined
+	);
+
+	const [ animationEnabled, setAnimationEnabled ] = useState( false );
+	useOnValueUpdate( indicatorPosition.element, ( { previousValue } ) => {
+		// Only enable the animation when moving from one element to another.
+		if ( indicatorPosition.element && previousValue ) {
+			setAnimationEnabled( true );
+		}
+	} );
 
 	const cx = useCx();
 
@@ -81,7 +94,22 @@ function UnconnectedToggleGroupControl(
 			) }
 			<MainControl
 				{ ...otherProps }
-				className={ classes }
+				setActiveElement={ setActiveElement }
+				className={ clsx(
+					animationEnabled && 'is-animation-enabled',
+					classes
+				) }
+				style={ {
+					'--indicator-left': indicatorPosition.left,
+					'--indicator-width': indicatorPosition.width,
+					'--indicator-height': indicatorPosition.height,
+					...otherProps.style,
+				} }
+				onTransitionEnd={ ( event ) => {
+					if ( event.pseudoElement === '::before' ) {
+						setAnimationEnabled( false );
+					}
+				} }
 				isAdaptiveWidth={ isAdaptiveWidth }
 				label={ label }
 				onChange={ onChange }
@@ -89,7 +117,7 @@ function UnconnectedToggleGroupControl(
 				size={ normalizedSize }
 				value={ value }
 			>
-				<LayoutGroup id={ baseId }>{ children }</LayoutGroup>
+				{ children }
 			</MainControl>
 		</BaseControl>
 	);

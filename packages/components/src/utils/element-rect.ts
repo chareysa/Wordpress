@@ -10,6 +10,10 @@ import { useEvent, useResizeObserver } from '@wordpress/compose';
  */
 export type ElementOffsetRect = {
 	/**
+	 * The element the rect belongs to.
+	 */
+	element: HTMLElement | undefined;
+	/**
 	 * The distance from the top edge of the offset parent to the top edge of
 	 * the element.
 	 */
@@ -49,6 +53,7 @@ export const NULL_ELEMENT_OFFSET_RECT = {
 	left: 0,
 	width: 0,
 	height: 0,
+	element: undefined,
 } satisfies ElementOffsetRect;
 
 /**
@@ -90,6 +95,7 @@ export function getElementOffsetRect(
 	const scaleY = computedHeight / rect.height;
 
 	return {
+		element,
 		// To obtain the adjusted values for the position:
 		// 1. Compute the element's position relative to the offset parent.
 		// 2. Correct for the scale factor.
@@ -108,6 +114,9 @@ const POLL_RATE = 100;
 /**
  * Tracks the position and dimensions of an element, relative to its offset
  * parent. The element can be changed dynamically.
+ *
+ * When no element is provided (`null` or `undefined`), the hook will return
+ * a "null" rect, in which all values are `0` and `element` is `undefined`.
  *
  * **Note:** sometimes, the measurement will fail (see `getElementOffsetRect`'s
  * documentation for more details). When that happens, this hook will attempt
@@ -145,10 +154,12 @@ export function useTrackElementOffsetRect(
 		}
 	} );
 
-	useLayoutEffect(
-		() => setElement( targetElement ),
-		[ setElement, targetElement ]
-	);
+	useLayoutEffect( () => {
+		setElement( targetElement );
+		if ( ! targetElement ) {
+			setIndicatorPosition( NULL_ELEMENT_OFFSET_RECT );
+		}
+	}, [ setElement, targetElement ] );
 
 	return indicatorPosition;
 }
