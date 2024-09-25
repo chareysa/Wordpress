@@ -50,6 +50,10 @@ Undocumented declaration.
 
 Undocumented declaration.
 
+### slugField
+
+Undocumented declaration.
+
 ### titleField
 
 Undocumented declaration.
