@@ -3,15 +3,12 @@
  */
 import {
 	__experimentalItemGroup as ItemGroup,
-	FlexItem,
 	__experimentalHStack as HStack,
-	__experimentalZStack as ZStack,
 	__experimentalVStack as VStack,
-	ColorIndicator,
-	Button,
+	FlexItem,
 } from '@wordpress/components';
 import { isRTL, __ } from '@wordpress/i18n';
-import { Icon, shuffle, chevronLeft, chevronRight } from '@wordpress/icons';
+import { Icon, chevronLeft, chevronRight } from '@wordpress/icons';
 import { useMemo } from '@wordpress/element';
 import { privateApis as blockEditorPrivateApis } from '@wordpress/block-editor';
 
@@ -20,8 +17,6 @@ import { privateApis as blockEditorPrivateApis } from '@wordpress/block-editor';
  */
 import Subtitle from './subtitle';
 import { NavigationButtonAsItem } from './navigation-button';
-import { useColorRandomizer } from './hooks';
-import ColorIndicatorWrapper from './color-indicator-wrapper';
 import { unlock } from '../../lock-unlock';
 
 const { useGlobalSetting } = unlock( blockEditorPrivateApis );
@@ -38,8 +33,6 @@ function Palette( { name } ) {
 		name
 	);
 
-	const [ randomizeThemeColors ] = useColorRandomizer();
-
 	const colors = useMemo(
 		() => [
 			...( customColors || EMPTY_COLORS ),
@@ -51,50 +44,26 @@ function Palette( { name } ) {
 		[ customColors, themeColors, defaultColors, defaultPaletteEnabled ]
 	);
 
+	const hasColors = colors.length > 0;
+
 	const screenPath = ! name
 		? '/colors/palette'
 		: '/blocks/' + encodeURIComponent( name ) + '/colors/palette';
-	const paletteButtonText =
-		colors.length > 0 ? __( 'Edit palette' ) : __( 'Add colors' );
+	const paletteButtonText = hasColors
+		? __( 'Edit palette' )
+		: __( 'Add colors' );
 
 	return (
 		<VStack spacing={ 3 }>
 			<Subtitle level={ 3 }>{ __( 'Palette' ) }</Subtitle>
 			<ItemGroup isBordered isSeparated>
-				<NavigationButtonAsItem
-					path={ screenPath }
-					aria-label={ paletteButtonText }
-				>
+				<NavigationButtonAsItem path={ screenPath }>
 					<HStack direction="row">
-						{ colors.length <= 0 && (
-							<FlexItem>{ __( 'Add colors' ) }</FlexItem>
-						) }
-						<ZStack isLayered={ false } offset={ -8 }>
-							{ colors
-								.slice( 0, 5 )
-								.map( ( { color }, index ) => (
-									<ColorIndicatorWrapper
-										key={ `${ color }-${ index }` }
-									>
-										<ColorIndicator colorValue={ color } />
-									</ColorIndicatorWrapper>
-								) ) }
-						</ZStack>
+						<FlexItem>{ paletteButtonText }</FlexItem>
 						<Icon icon={ isRTL() ? chevronLeft : chevronRight } />
 					</HStack>
 				</NavigationButtonAsItem>
 			</ItemGroup>
-			{ window.__experimentalEnableColorRandomizer &&
-				themeColors?.length > 0 && (
-					<Button
-						__next40pxDefaultSize
-						variant="secondary"
-						icon={ shuffle }
-						onClick={ randomizeThemeColors }
-					>
-						{ __( 'Randomize colors' ) }
-					</Button>
-				) }
 		</VStack>
 	);
 }
