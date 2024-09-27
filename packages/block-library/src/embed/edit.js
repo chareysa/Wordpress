@@ -30,6 +30,7 @@ import { useBlockProps } from '@wordpress/block-editor';
 import { store as coreStore } from '@wordpress/core-data';
 import { View } from '@wordpress/primitives';
 import { getAuthority } from '@wordpress/url';
+import { Caption } from '../utils/caption';
 
 const EmbedEdit = ( props ) => {
 	const {
@@ -250,6 +251,9 @@ const EmbedEdit = ( props ) => {
 		className: classFromPreview,
 	} = getMergedAttributes();
 	const className = clsx( classFromPreview, props.className );
+	blockProps.className = clsx( blockProps.className, className, {
+		'is-type-video': 'video' === type,
+	} );
 
 	return (
 		<>
@@ -261,7 +265,7 @@ const EmbedEdit = ( props ) => {
 				toggleResponsive={ toggleResponsive }
 				switchBackToURLInput={ () => setIsEditingURL( true ) }
 			/>
-			<View { ...blockProps }>
+			<figure { ...blockProps }>
 				<EmbedPreview
 					preview={ preview }
 					previewable={ previewable }
@@ -279,7 +283,15 @@ const EmbedEdit = ( props ) => {
 					attributes={ attributes }
 					setAttributes={ setAttributes }
 				/>
-			</View>
+				<Caption
+					attributes={ attributes }
+					setAttributes={ setAttributes }
+					isSelected={ isSelected }
+					insertBlocksAfter={ insertBlocksAfter }
+					label={ __( 'Embed caption text' ) }
+					showToolbarButton={ isSelected }
+				/>
+			</figure>
 		</>
 	);
 };
