@@ -21,6 +21,10 @@
 -   `BorderControl`: Use `__next40pxDefaultSize` prop for Reset button ([#65682](https://github.com/WordPress/gutenberg/pull/65682)).
 -   `Navigator`: stabilize APIs ([#64613](https://github.com/WordPress/gutenberg/pull/64613)).
 
+### Internal
+
+-   Update `re-resizable` dependency to 6.10.0 ([#65637](https://github.com/WordPress/gutenberg/pull/65637)).
+
 ## 28.8.0 (2024-09-19)
 
 ### Bug Fixes
