@@ -6,7 +6,7 @@ import type { Meta, StoryObj } from '@storybook/react';
 /**
  * WordPress dependencies
  */
-import { useContext, useMemo } from '@wordpress/element';
+import { useContext, useMemo, useState } from '@wordpress/element';
 
 /**
  * Internal dependencies
@@ -351,5 +351,29 @@ const Fill = ( { children } ) => {
 				},
 			},
 		},
+	},
+};
+
+export const RemoveActiveItem: StoryObj< typeof Composite > = {
+	render: ( args ) => {
+		// eslint-disable-next-line react-hooks/rules-of-hooks
+		const [ showThirdItem, setShowThirdItem ] = useState( true );
+		return (
+			<>
+				<Composite { ...args }>
+					<Composite.Item>Item one</Composite.Item>
+					<Composite.Item>Item two</Composite.Item>
+					{ showThirdItem && (
+						<Composite.Item>Item three</Composite.Item>
+					) }
+				</Composite>
+				<button
+					style={ { marginTop: '1em' } }
+					onClick={ () => setShowThirdItem( ( value ) => ! value ) }
+				>
+					Toggle third item
+				</button>
+			</>
+		);
 	},
 };
