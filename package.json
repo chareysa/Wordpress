@@ -91,6 +91,7 @@
 		"@wordpress/undo-manager": "file:packages/undo-manager",
 		"@wordpress/url": "file:packages/url",
 		"@wordpress/viewport": "file:packages/viewport",
+		"@wordpress/vips": "file:packages/vips",
 		"@wordpress/warning": "file:packages/warning",
 		"@wordpress/widgets": "file:packages/widgets",
 		"@wordpress/wordcount": "file:packages/wordcount"
@@ -117,6 +118,7 @@
 		"@react-native/babel-preset": "0.73.10",
 		"@react-native/metro-babel-transformer": "0.73.10",
 		"@react-native/metro-config": "0.73.4",
+		"@shopify/web-worker": "6.3.0",
 		"@storybook/addon-a11y": "7.6.15",
 		"@storybook/addon-actions": "7.6.15",
 		"@storybook/addon-controls": "7.6.15",
