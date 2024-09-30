@@ -360,6 +360,7 @@ export const RemoveActiveItem: StoryObj< typeof Composite > = {
 		const [ showThirdItem, setShowThirdItem ] = useState( true );
 		return (
 			<>
+				<button>Focus trap before composite</button>
 				<Composite { ...args }>
 					<Composite.Item>Item one</Composite.Item>
 					<Composite.Item>Item two</Composite.Item>
