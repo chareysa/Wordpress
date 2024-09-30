@@ -97,6 +97,7 @@ export function useEventHandlers( { clientId, isSelected, editorMode } ) {
 			getBlockIndex,
 			insertAfterBlock,
 			removeBlock,
+			editorMode,
 		]
 	);
 }
