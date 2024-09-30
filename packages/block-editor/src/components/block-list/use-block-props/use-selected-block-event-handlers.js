@@ -10,6 +10,7 @@ import { useRefEffect } from '@wordpress/compose';
  * Internal dependencies
  */
 import { store as blockEditorStore } from '../../../store';
+import { unlock } from '../../../lock-unlock';
 
 /**
  * Adds block behaviour:
@@ -19,10 +20,15 @@ import { store as blockEditorStore } from '../../../store';
  *
  * @param {string} clientId Block client ID.
  */
-export function useEventHandlers( { clientId, isSelected } ) {
+export function useEventHandlers( { clientId, isSelected, editorMode } ) {
 	const { getBlockRootClientId, getBlockIndex } =
 		useSelect( blockEditorStore );
-	const { insertAfterBlock, removeBlock } = useDispatch( blockEditorStore );
+	const {
+		insertAfterBlock,
+		removeBlock,
+		__unstableSetEditorMode,
+		resetZoomLevel,
+	} = unlock( useDispatch( blockEditorStore ) );
 
 	return useRefEffect(
 		( node ) => {
@@ -56,7 +62,10 @@ export function useEventHandlers( { clientId, isSelected } ) {
 
 				event.preventDefault();
 
-				if ( keyCode === ENTER ) {
+				if ( keyCode === ENTER && editorMode === 'zoom-out' ) {
+					__unstableSetEditorMode( 'edit' );
+					resetZoomLevel();
+				} else if ( keyCode === ENTER ) {
 					insertAfterBlock( clientId );
 				} else {
 					removeBlock( clientId );
@@ -88,6 +97,7 @@ export function useEventHandlers( { clientId, isSelected } ) {
 			getBlockIndex,
 			insertAfterBlock,
 			removeBlock,
+			editorMode,
 		]
 	);
 }
