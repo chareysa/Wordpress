@@ -112,7 +112,7 @@ export function useBlockProps( props = {}, { __unstableIsHtml } = {} ) {
 		useFocusFirstElement( { clientId, initialPosition } ),
 		useBlockRefProvider( clientId ),
 		useFocusHandler( clientId ),
-		useEventHandlers( { clientId, isSelected } ),
+		useEventHandlers( { clientId, isSelected, editorMode } ),
 		useZoomOutModeExit( { editorMode } ),
 		useIsHovered( { clientId } ),
 		useIntersectionObserver(),
