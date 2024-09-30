@@ -20,7 +20,11 @@ export const CompositeItem = forwardRef<
 	WordPressComponentProps< CompositeItemProps, 'button', false >
 >( function CompositeItem( props, ref ) {
 	const context = useCompositeContext();
-	const store = context.store as Ariakit.CompositeStore;
+
+	// @ts-expect-error The store prop in undocumented and only used by the
+	// legacy compat layer.
+	const storeViaProps = props.store as Ariakit.CompositeStore;
+	const store = storeViaProps ?? ( context.store as Ariakit.CompositeStore );
 
 	// If the active item is not connected, Composite may end up in a state
 	// where none of the items are tabbable. In this case, we force all items to
