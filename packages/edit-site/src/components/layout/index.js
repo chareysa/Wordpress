@@ -247,6 +247,7 @@ export default function Layout( { route } ) {
 													gradientValue ??
 													backgroundColor,
 											} }
+											hasResize={ widths?.hasResize }
 										>
 											{ areas.preview }
 										</ResizableFrame>

@@ -20,7 +20,8 @@ import { __ } from '@wordpress/i18n';
 import { store as preferencesStore } from '@wordpress/preferences';
 import { moreVertical } from '@wordpress/icons';
 import { store as coreStore } from '@wordpress/core-data';
-import { useEffect } from '@wordpress/element';
+import { useEffect, Fragment } from '@wordpress/element';
+import { usePrevious } from '@wordpress/compose';
 
 /**
  * Internal dependencies
@@ -275,18 +276,50 @@ function GlobalStylesEditorCanvasContainerLink() {
 	}, [ editorCanvasContainerView, isRevisionsOpen, goTo ] );
 }
 
-function GlobalStylesUI() {
+function useNavigatorSync( parentPath, onPathChange ) {
+	const navigator = useNavigator();
+	const { path: childPath } = navigator.location;
+	const previousParentPath = usePrevious( parentPath );
+	const previousChildPath = usePrevious( childPath );
+	useEffect( () => {
+		if ( parentPath !== childPath ) {
+			if ( parentPath !== previousParentPath ) {
+				navigator.goTo( parentPath );
+			} else if ( childPath !== previousChildPath ) {
+				onPathChange( childPath );
+			}
+		}
+	}, [
+		onPathChange,
+		parentPath,
+		previousChildPath,
+		previousParentPath,
+		childPath,
+		navigator,
+	] );
+}
+
+// This component is used to wrap the hook in order to conditionally execute it
+// when the parent component is used on controlled mode.
+function NavigationSync( { path: parentPath, onPathChange, children } ) {
+	useNavigatorSync( parentPath, onPathChange );
+	return children;
+}
+
+function GlobalStylesUI( { path, onPathChange } ) {
 	const blocks = getBlockTypes();
 	const editorCanvasContainerView = useSelect(
 		( select ) =>
 			unlock( select( editSiteStore ) ).getEditorCanvasContainerView(),
 		[]
 	);
+	const WrapperComponent = path && onPathChange ? NavigationSync : Fragment;
 	return (
 		<NavigatorProvider
 			className="edit-site-global-styles-sidebar__navigator-provider"
 			initialPath="/"
 		>
+			<WrapperComponent path={ path } onPathChange={ onPathChange }>
 			<GlobalStylesNavigationScreen path="/">
 				<ScreenRoot />
 			</GlobalStylesNavigationScreen>
@@ -374,7 +407,9 @@ function GlobalStylesUI() {
 				<ContextScreens
 					key={ 'screens-block-' + block.name }
 					name={ block.name }
-					parentMenu={ '/blocks/' + encodeURIComponent( block.name ) }
+						parentMenu={
+							'/blocks/' + encodeURIComponent( block.name )
+						}
 				/>
 			) ) }
 
@@ -385,6 +420,7 @@ function GlobalStylesUI() {
 			<GlobalStylesActionMenu />
 			<GlobalStylesBlockLink />
 			<GlobalStylesEditorCanvasContainerLink />
+			</WrapperComponent>
 		</NavigatorProvider>
 	);
 }
