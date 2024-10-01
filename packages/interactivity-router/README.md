@@ -1,9 +1,14 @@
-# Interactivity Router
+# `@wordpress/interactivity-router`
 
-> **Note**
-> This package is a extension of the API shared at [Proposal: The Interactivity API – A better developer experience in building interactive blocks](https://make.wordpress.org/core/2023/03/30/proposal-the-interactivity-api-a-better-developer-experience-in-building-interactive-blocks/). As part of an [Open Source project](https://developer.wordpress.org/block-editor/getting-started/faq/#the-gutenberg-project) we encourage participation in helping shape this API and the [discussions in GitHub](https://github.com/WordPress/gutenberg/discussions/categories/interactivity-api) is the best place to engage.
+The package `@wordpress/interactivity-router` enables a "router engine" for the Interactivity API to load content from other pages without page reloading. Currently, the only supported mode is "region-based". Full "client-side navigation" is still in experimental phase.
 
-This package defines an Interactivity API store with the `core/router` namespace, exposing state and actions like `navigate` and `prefetch` to handle client-side navigations.
+The package defines an Interactivity API store with the `core/router` namespace, exposing state and actions like `navigate` and `prefetch` to handle client-side navigation.
+
+It was [introduced in WordPress Core in v6.5](https://make.wordpress.org/core/2024/02/19/merge-announcement-interactivity-api/). This means this package is already bundled in Core in any version of WordPress higher than v6.5.
+
+<div class="callout callout-info">
+    Check the <a href="https://developer.wordpress.org/block-editor/reference-guides/interactivity-api/">Interactivity API Reference docs in the Block Editor handbook</a> to learn more about the Interactivity API.
+</div>
 
 ## Usage
 
@@ -25,29 +30,96 @@ store( 'myblock', {
 } );
 ```
 
-## Frequently Asked Questions
+When loaded, this package [adds the following state and actions](https://github.com/WordPress/gutenberg/blob/ed7d78652526270b63976d7a970dba46a2bfcbb0/packages/interactivity-router/src/index.ts#L212) to the `core/router` store:
 
-At this point, some of the questions you have about the Interactivity API may be:
+```
+const { state, actions } = store( 'core/router', {
+	state: {
+		url: window.location.href,
+		navigation: {
+			hasStarted: false,
+			hasFinished: false,
+			texts: {
+				loading: '',
+				loaded: '',
+			},
+			message: '',
+		},
+	},
+	actions: {
+		*navigate(href, options) {...},
+		prefetch(url, options) {...}
+	}
+})
 
-### What is this?
+```
 
-This is the base of a new standard to create interactive blocks. Read [the proposal](https://make.wordpress.org/core/2023/03/30/proposal-the-interactivity-api-a-better-developer-experience-in-building-interactive-blocks/) to learn more about this.
+<div class="callout callout-tip">
+    The core "Query Loop" block is [using this package](https://github.com/WordPress/gutenberg/blob/cd701e94ceffea7ef2f423274a2f77025bcfa1a6/packages/block-library/src/query/view.js#L35) to provide the [region based feature](https://github.com/WordPress/gutenberg/blob/cd701e94ceffea7ef2f423274a2f77025bcfa1a6/packages/block-library/src/query/index.php#L33)
+</div>
 
-### Can I use it?
+### Directives:
 
-You can test it, but it's still very experimental.
+#### `data-wp-router-region`
 
-### How do I get started?
+It defines a region that is updated on navigation. It requires a unique ID as the value and can only be used in root interactive elements, i.e., elements with `data-wp-interactive` that are not nested inside other elements with `data-wp-interactive`.
 
-The best place to start with the Interactivity API is this [**Getting started guide**](https://github.com/WordPress/gutenberg/blob/trunk/packages/interactivity/docs/1-getting-started.md). There you'll will find a very quick start guide and the current requirements of the Interactivity API.
+Example:
 
-### Where can I ask questions?
+```html
+<div data-wp-interactive="myblock" data-wp-router-region="main-list">
+  <ul>
+     <li><a href="/post-1">Post 1</a></li>
+     <li><a href="/post-2">Post 2</a></li>
+     <li><a href="/post-3">Post 3</a></li>
+  </ul>
+  <a data-wp-on--click="actions.navigate" href="/page/2">
+</div>
+```
 
-The [“Interactivity API” category](https://github.com/WordPress/gutenberg/discussions/categories/interactivity-api) in Gutenberg repo discussions is the best place to ask questions about the Interactivity API.
+### Actions
 
-### Where can I share my feedback about the API?
+#### `navigate`
 
-The [“Interactivity API” category](https://github.com/WordPress/gutenberg/discussions/categories/interactivity-api) in Gutenberg repo discussions is also the best place to share your feedback about the Interactivity API.
+This action navigates to the specified page.
+This function normalizes the passed `href`, fetches the page HTML if needed, and updates any interactive regions whose contents have changed. It also creates a new entry in the browser session history.
+
+**Params**
+
+```
+navigate( href: string, options: NavigateOptions = {} )
+```
+
+-   `href`: The page `href`.
+-   `options`: Options object.
+    -   `force`: If `true`, it forces re-fetching the URL.
+    -   `html`: HTML string to be used instead of fetching the requested URL.
+    -   `replace`: If `true`, it replaces the current entry in the browser session history.
+    -   `timeout`: Time until the navigation is aborted, in milliseconds. Default is `10000`.
+    -   `loadingAnimation`: Whether an animation should be shown while navigating. Default to `true`.
+    -   `screenReaderAnnouncement`: Whether a message for screen readers should be announced while navigating. Default to `true`.
+
+#### `prefetch`
+
+Prefetchs the page with the passed URL.
+The function normalizes the URL and stores internally the fetch promise, to avoid triggering a second fetch for an ongoing request.
+
+**Params**
+
+```
+prefetch( url: string, options: PrefetchOptions = {} )
+```
+
+-   `url`: The page `url`.
+-   `options`: Options object.
+
+    -   `force`: If `true`, forces fetching the URL again.
+    -   `html`: HTML string to be used instead of fetching the requested URL.
+
+### State
+
+`state.url` is a reactive property synchronized with the current URL.
+Properties under `state.navigation` are meant for loading bar animations.
 
 ## Installation
 
@@ -57,20 +129,14 @@ Install the module:
 npm install @wordpress/interactivity --save
 ```
 
-_This package assumes that your code will run in an **ES2015+** environment. If you're using an environment that has limited or no support for such language features and APIs, you should include [the polyfill shipped in `@wordpress/babel-preset-default`](https://github.com/WordPress/gutenberg/tree/HEAD/packages/babel-preset-default#polyfill) in your code._
+This step is only required if you use the Interactivity API outside WordPress.
 
-## Docs & Examples
+Within WordPress, the package is already bundled in Core. To ensure it's loaded, add `@wordpress/interactivity` to the dependency array of the script module. This process is often done automatically with tools like [`wp-scripts`](https://developer.wordpress.org/block-editor/getting-started/devenv/get-started-with-wp-scripts/).
 
-**[Interactivity API Documentation](https://github.com/WordPress/gutenberg/tree/trunk/packages/interactivity/docs)** is the best place to learn about this proposal. Although it's still in progress, some key pages are already available:
+Furthermore, this package assumes your code will run in an **ES2015+** environment. If you're using an environment with limited or no support for such language features and APIs, you should include the polyfill shipped in [`@wordpress/babel-preset-default`](https://github.com/WordPress/gutenberg/tree/HEAD/packages/babel-preset-default#polyfill) in your code.
 
--   **[Getting Started Guide](https://github.com/WordPress/gutenberg/blob/trunk/packages/interactivity/docs/1-getting-started.md)**: Follow this Getting Started guide to learn how to scaffold a new project and create your first interactive blocks.
--   **[API Reference](https://github.com/WordPress/gutenberg/blob/trunk/packages/interactivity/docs/2-api-reference.md)**: Check this page for technical detailed explanations and examples of the directives and the store.
+## License
 
-Here you have some more resources to learn/read more about the Interactivity API:
+Interactivity API proposal, as part of Gutenberg and the WordPress project is free software, and is released under the terms of the GNU General Public License version 2 or (at your option) any later version. See [LICENSE.md](https://github.com/WordPress/gutenberg/blob/trunk/LICENSE.md) for complete license.
 
--   **[Interactivity API Discussions](https://github.com/WordPress/gutenberg/discussions/52882)**
--   [Proposal: The Interactivity API – A better developer experience in building interactive blocks](https://make.wordpress.org/core/2023/03/30/proposal-the-interactivity-api-a-better-developer-experience-in-building-interactive-blocks/)
--   Developer Hours sessions ([Americas](https://www.youtube.com/watch?v=RXNoyP2ZiS8&t=664s) & [APAC/EMEA](https://www.youtube.com/watch?v=6ghbrhyAcvA))
--   [wpmovies.dev](http://wpmovies.dev/) demo and its [wp-movies-demo](https://github.com/WordPress/wp-movies-demo) repo
-
-<br /><br /><p align="center"><img src="https://s.w.org/style/images/codeispoetry.png?1" alt="Code is Poetry." /></p>
+<br/><br/><p align="center"><img src="https://s.w.org/style/images/codeispoetry.png?1" alt="Code is Poetry." /></p>
