@@ -8,7 +8,6 @@ import clsx from 'clsx';
  */
 import { useEffect, useRef } from '@wordpress/element';
 import {
-	BlockControls,
 	useInnerBlocksProps,
 	useBlockProps,
 	InspectorControls,
@@ -20,14 +19,12 @@ import {
 	store as blockEditorStore,
 } from '@wordpress/block-editor';
 import {
-	MenuGroup,
-	MenuItem,
 	PanelBody,
 	ToggleControl,
-	ToolbarDropdownMenu,
+	__experimentalToggleGroupControl as ToggleGroupControl,
+	__experimentalToggleGroupControlOption as ToggleGroupControlOption,
 } from '@wordpress/components';
 import { __ } from '@wordpress/i18n';
-import { check } from '@wordpress/icons';
 import { useSelect } from '@wordpress/data';
 
 const sizeOptions = [
@@ -117,10 +114,6 @@ export function SocialLinksEdit( props ) {
 		renderAppender: hasAnySelected && InnerBlocks.ButtonBlockAppender,
 	} );
 
-	const POPOVER_PROPS = {
-		position: 'bottom right',
-	};
-
 	const colorSettings = [
 		{
 			// Use custom attribute as fallback to prevent loss of named color selection when
@@ -161,45 +154,31 @@ export function SocialLinksEdit( props ) {
 
 	return (
 		<>
-			<BlockControls group="other">
-				<ToolbarDropdownMenu
-					label={ __( 'Size' ) }
-					text={ __( 'Size' ) }
-					icon={ null }
-					popoverProps={ POPOVER_PROPS }
-				>
-					{ ( { onClose } ) => (
-						<MenuGroup>
-							{ sizeOptions.map( ( entry ) => {
-								return (
-									<MenuItem
-										icon={
-											( size === entry.value ||
-												( ! size &&
-													entry.value ===
-														'has-normal-icon-size' ) ) &&
-											check
-										}
-										isSelected={ size === entry.value }
-										key={ entry.value }
-										onClick={ () => {
-											setAttributes( {
-												size: entry.value,
-											} );
-										} }
-										onClose={ onClose }
-										role="menuitemradio"
-									>
-										{ entry.name }
-									</MenuItem>
-								);
-							} ) }
-						</MenuGroup>
-					) }
-				</ToolbarDropdownMenu>
-			</BlockControls>
 			<InspectorControls>
 				<PanelBody title={ __( 'Settings' ) }>
+					<ToggleGroupControl
+						__next40pxDefaultSize
+						__nextHasNoMarginBottom
+						label={ __( 'Size' ) }
+						value={ size ?? 'has-normal-icon-size' }
+						onChange={ ( entry ) => {
+							setAttributes( {
+								size: entry,
+							} );
+						} }
+						isBlock
+						help={ __( 'Choose the size of the Social Icons.' ) }
+					>
+						{ sizeOptions.map( ( entry ) => {
+							return (
+								<ToggleGroupControlOption
+									key={ entry.value }
+									value={ entry.value }
+									label={ entry.name }
+								/>
+							);
+						} ) }
+					</ToggleGroupControl>
 					<ToggleControl
 						__nextHasNoMarginBottom
 						label={ __( 'Open links in new tab' ) }
