@@ -8,6 +8,7 @@ import clsx from 'clsx';
  */
 import { useMergeRefs } from '@wordpress/compose';
 import { Popover } from '@wordpress/components';
+import { useSelect } from '@wordpress/data';
 import {
 	forwardRef,
 	useMemo,
@@ -21,6 +22,8 @@ import {
 import { useBlockElement } from '../block-list/use-block-props/use-block-refs';
 import usePopoverScroll from './use-popover-scroll';
 import { rectUnion, getVisibleElementBounds } from '../../utils/dom';
+import { store as blockEditorStore } from '../../store';
+import { unlock } from '../../lock-unlock';
 
 const MAX_POPOVER_RECOMPUTE_COUNTER = Number.MAX_SAFE_INTEGER;
 
@@ -74,6 +77,9 @@ function BlockPopover(
 		};
 	}, [ selectedElement ] );
 
+	const { isZoomOut: isZoomOutFn } = unlock( useSelect( blockEditorStore ) );
+	const isZoomOut = isZoomOutFn();
+
 	const popoverAnchor = useMemo( () => {
 		if (
 			// popoverDimensionsRecomputeCounter is by definition always equal or greater
@@ -88,6 +94,29 @@ function BlockPopover(
 
 		return {
 			getBoundingClientRect() {
+				// The zoom out view has a verical block toolbar that should always
+				// be on the edge of the canvas. This condition chnages the anchor
+				// of the toolbar to the section instead of the block to cover for blocks
+				// that are not full width.
+				if ( isZoomOut ) {
+					const selectedBlockRect =
+						getVisibleElementBounds( selectedElement );
+					const sectionRootElementRect = getVisibleElementBounds(
+						selectedElement.parentElement
+					);
+					const selectedBlockRectHeight =
+						selectedBlockRect.bottom - selectedBlockRect.top;
+					const sectionRootElementRectWidth =
+						sectionRootElementRect.right -
+						sectionRootElementRect.left;
+					return new window.DOMRectReadOnly(
+						sectionRootElementRect.left,
+						selectedBlockRect.top,
+						sectionRootElementRectWidth,
+						selectedBlockRectHeight
+					);
+				}
+
 				return lastSelectedElement
 					? rectUnion(
 							getVisibleElementBounds( selectedElement ),
@@ -102,6 +131,7 @@ function BlockPopover(
 		lastSelectedElement,
 		selectedElement,
 		popoverDimensionsRecomputeCounter,
+		isZoomOut,
 	] );
 
 	if ( ! selectedElement || ( bottomClientId && ! lastSelectedElement ) ) {
