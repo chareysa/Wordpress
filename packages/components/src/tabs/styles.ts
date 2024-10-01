@@ -9,6 +9,7 @@ import * as Ariakit from '@ariakit/react';
  */
 import { COLORS, CONFIG } from '../utils';
 import { space } from '../utils/space';
+import Icon from '../icon';
 
 export const TabListWrapper = styled.div`
 	position: relative;
@@ -40,7 +41,7 @@ export const TabListWrapper = styled.div`
 
 	@media not ( prefers-reduced-motion ) {
 		&.is-animation-enabled::before {
-			transition-property: transform;
+			transition-property: transform, top;
 			transition-duration: 0.2s;
 			transition-timing-function: ease-out;
 		}
@@ -104,15 +105,13 @@ export const TabListWrapper = styled.div`
 		}
 	}
 	&[aria-orientation='vertical']::before {
-		top: 0;
+		border-radius: ${ CONFIG.radiusSmall };
+		top: calc( var( --indicator-top ) * 1px );
 		left: 0;
 		width: 100%;
-		height: calc( var( --antialiasing-factor ) * 1px );
-		transform: translateY( calc( var( --indicator-top ) * 1px ) )
-			scaleY(
-				calc( var( --indicator-height ) / var( --antialiasing-factor ) )
-			);
-		background-color: ${ COLORS.theme.gray[ 100 ] };
+		height: calc( var( --indicator-height ) * 1px );
+		background-color: ${ COLORS.theme.accent };
+		opacity: 0.04;
 	}
 `;
 
@@ -125,15 +124,13 @@ export const Tab = styled( Ariakit.Tab )`
 		align-items: center;
 		position: relative;
 		border-radius: 0;
-		height: ${ space( 12 ) };
 		background: transparent;
 		border: none;
 		box-shadow: none;
 		cursor: pointer;
 		line-height: 1.2; // Some languages characters e.g. Japanese may have a native higher line-height.
-		padding: ${ space( 4 ) };
 		margin-left: 0;
-		font-weight: 500;
+		font-weight: 400;
 		text-align: inherit;
 		color: ${ COLORS.theme.foreground };
 
@@ -142,7 +139,7 @@ export const Tab = styled( Ariakit.Tab )`
 			color: ${ COLORS.ui.textDisabled };
 		}
 
-		&:not( [aria-disabled='true'] ):hover {
+		&:not( [aria-disabled='true'] ):is( :hover, [data-focus-visible] ) {
 			color: ${ COLORS.theme.accent };
 		}
 
@@ -156,10 +153,6 @@ export const Tab = styled( Ariakit.Tab )`
 		&::after {
 			content: '';
 			position: absolute;
-			top: ${ space( 3 ) };
-			right: ${ space( 3 ) };
-			bottom: ${ space( 3 ) };
-			left: ${ space( 3 ) };
 			pointer-events: none;
 
 			// Draw the indicator.
@@ -181,10 +174,50 @@ export const Tab = styled( Ariakit.Tab )`
 		}
 	}
 
-	[aria-orientation='vertical'] & {
+	[aria-orientation='horizontal'] & {
+		padding: ${ space( 4 ) };
 		min-height: ${ space(
-			10
+			12
 		) }; // Avoid fixed height to allow for long strings that go in multiple lines.
+		height: auto;
+
+		&::after {
+			inset: ${ space( 3 ) };
+		}
+	}
+
+	[aria-orientation='vertical'] & {
+		padding: ${ space( 2 ) } ${ space( 3 ) };
+		padding-left: ${ space( 3 ) };
+		padding-right: ${ space( 3 ) };
+		min-height: ${ space( 10 ) };
+		&[aria-selected='true'] {
+			color: ${ COLORS.theme.accent };
+			fill: currentColor;
+		}
+
+		&::after {
+			inset: 2px;
+		}
+	}
+`;
+
+export const TabChildren = styled.span`
+	flex-grow: 1;
+`;
+
+export const TabChevron = styled( Icon )`
+	flex-shrink: 0;
+	margin-inline-end: ${ space( -1 ) };
+	[aria-orientation='horizontal'] & {
+		display: none;
+	}
+	opacity: 0;
+	[role='tab']:is( [aria-selected='true'], [data-focus-visible], :hover ) & {
+		opacity: 1;
+	}
+	&:dir( rtl ) {
+		rotate: 180deg;
 	}
 
 	[aria-orientation='horizontal'] & {
